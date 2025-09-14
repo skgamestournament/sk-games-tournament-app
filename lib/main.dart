@@ -1,26 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:google_fonts/google_fonts.dart';
 
-// IMPORTANT: We will create this login_page.dart file in the next step.
-// For now, this line will show an error, but that's okay.
-// import 'login_page.dart'; 
+import 'login_page.dart';
+import 'home_page.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Initialize Supabase
-  // =================================================================
-  // == IMPORTANT: Replace with YOUR Supabase URL and Anon Key ==
-  // =================================================================
   await Supabase.initialize(
-    url: 'https://efzutfrykarzqbfurkhw.supabase.co', // Paste your Project URL here
-    anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVmenV0ZnJ5a2FyenFiZnVya2h3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc4Mzg2ODMsImV4cCI6MjA3MzQxNDY4M30.MERlzLikedbA8OzMalSTbtepW0VsErjDQY3EzQLuyQ0', // Paste your anon public key here
+    url: 'https://efzutfrykarzqbfurkhw.supabase.co', // MAKE SURE YOU HAVE PLACED YOUR URL HERE
+    anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVmenV0ZnJ5a2FyenFiZnVya2h3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc4Mzg2ODMsImV4cCI6MjA3MzQxNDY4M30.MERlzLikedbA8OzMalSTbtepW0VsErjDQY3EzQLuyQ0', // MAKE SURE YOU HAVE PLACED YOUR KEY HERE
   );
 
   runApp(const MyApp());
 }
 
-// Helper variable to access the Supabase client easily
 final supabase = Supabase.instance.client;
 
 class MyApp extends StatelessWidget {
@@ -33,14 +28,64 @@ class MyApp extends StatelessWidget {
       theme: ThemeData.dark().copyWith(
         primaryColor: Colors.deepPurple,
         scaffoldBackgroundColor: const Color(0xFF121212),
-        // You can add more theme customizations here
-      ),
-      // We will set the home page to LoginPage in the next step.
-      // For now, we are just setting up the connection.
-      home: const Scaffold(
-        body: Center(
-          child: Text('App Initialized!'),
+        textTheme: GoogleFonts.latoTextTheme(ThemeData.dark().textTheme),
+        elevatedButtonTheme: ElevatedButtonThemeData(
+          style: ElevatedButton.styleFrom(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
+          ),
         ),
+        inputDecorationTheme: InputDecorationTheme(
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(10),
+            borderSide: const BorderSide(color: Colors.deepPurpleAccent),
+          ),
+        ),
+      ),
+      // Use a Splash screen to check login status
+      home: const SplashPage(),
+    );
+  }
+}
+
+// A simple splash screen to check if the user is logged in or not
+class SplashPage extends StatefulWidget {
+  const SplashPage({super.key});
+
+  @override
+  State<SplashPage> createState() => _SplashPageState();
+}
+
+class _SplashPageState extends State<SplashPage> {
+  @override
+  void initState() {
+    super.initState();
+    _redirect();
+  }
+
+  Future<void> _redirect() async {
+    // Wait for a moment to show splash screen
+    await Future.delayed(const Duration(seconds: 1));
+    
+    final session = supabase.auth.currentSession;
+    if (!mounted) return;
+
+    if (session != null) {
+      Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (_) => const HomePage()));
+    } else {
+      Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (_) => const LoginPage()));
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return const Scaffold(
+      body: Center(
+        child: CircularProgressIndicator(),
       ),
     );
   }

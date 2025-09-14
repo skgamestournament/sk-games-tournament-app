@@ -4,12 +4,18 @@ workflows:
     instance_type: mac_mini_m2
     environment:
       flutter: stable
+      # Add Java version for Gradle
+      java: 11 
     scripts:
       - name: Generate platform files
         script: | 
           flutter create .
+      - name: Set minSdkVersion to 21
+        script: | 
+          sed -i '' 's/minSdkVersion flutter.minSdkVersion/minSdkVersion 21/g' android/app/build.gradle
       - name: Build Android App
         script: | 
           flutter build apk --release
     artifacts:
       - build/app/outputs/flutter-apk/app-release.apk
+

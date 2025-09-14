@@ -75,7 +75,7 @@ class _SplashPageState extends State<SplashPage> {
     if (!mounted) return;
 
     if (session != null) {
-      Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (_) => const HomePage()));
+      Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (_) => const MainLayout()));
     } else {
       Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (_) => const LoginPage()));
     }

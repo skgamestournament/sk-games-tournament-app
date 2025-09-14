@@ -70,7 +70,7 @@ class _LoginPageState extends State<LoginPage> {
       );
       if (mounted) {
         // Navigate to HomePage on successful sign-in
-        Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (_) => const HomePage()));
+        Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (_) => const MainLayout()));
       }
     } on AuthException catch (error) {
       if (mounted) {

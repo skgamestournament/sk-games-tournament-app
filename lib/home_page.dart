@@ -10,41 +10,101 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  // A future to hold the tournament data
-  late final Future<List<Map<String, dynamic>>?> _tournamentsFuture;
+  late Future<List<Map<String, dynamic>>?> _tournamentsFuture;
+  bool _isJoining = false;
 
   @override
   void initState() {
     super.initState();
-    // Fetch tournaments when the page loads
     _tournamentsFuture = _fetchTournaments();
   }
   
-  // Function to fetch data from Supabase
   Future<List<Map<String, dynamic>>?> _fetchTournaments() async {
     try {
       final data = await supabase
           .from('tournaments')
           .select()
-          .eq('status', 'upcoming') // Fetch only upcoming tournaments
+          .eq('status', 'upcoming')
           .order('match_time', ascending: true);
       return data;
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error fetching tournaments: ${e.toString()}'), backgroundColor: Colors.red),
-        );
+        _showErrorSnackBar('Error fetching tournaments: ${e.toString()}');
       }
       return null;
     }
   }
 
+  Future<void> _joinTournament(int tournamentId, int entryFee) async {
+    // Show confirmation dialog
+    final wantsToJoin = await showDialog<bool>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Confirm Join'),
+          content: Text('Are you sure you want to join this tournament for ₹$entryFee?'),
+          actions: [
+            TextButton(onPressed: () => Navigator.of(context).pop(false), child: const Text('Cancel')),
+            TextButton(onPressed: () => Navigator.of(context).pop(true), child: const Text('Join')),
+          ],
+        );
+      },
+    );
+
+    if (wantsToJoin != true) return; // User cancelled
+
+    setState(() => _isJoining = true);
+
+    try {
+      final result = await supabase.rpc('join_tournament', params: {
+        'tournament_id_to_join': tournamentId,
+      });
+
+      if (mounted) {
+        if (result == 'SUCCESS') {
+          _showSuccessSnackBar('Successfully joined the tournament!');
+          // Refresh the list to reflect any changes
+          setState(() {
+            _tournamentsFuture = _fetchTournaments();
+          });
+        } else if (result == 'INSUFFICIENT_BALANCE') {
+          _showErrorSnackBar('Insufficient balance in your wallet.');
+        } else if (result == 'ALREADY_JOINED') {
+          _showErrorSnackBar('You have already joined this tournament.');
+        } else {
+          _showErrorSnackBar('An unknown error occurred.');
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        _showErrorSnackBar('Error: ${e.toString()}');
+      }
+    }
+
+    setState(() => _isJoining = false);
+  }
+
+  void _showErrorSnackBar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message), backgroundColor: Colors.red),
+    );
+  }
+
+  void _showSuccessSnackBar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message), backgroundColor: Colors.green),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: FutureBuilder<List<Map<String, dynamic>>?>(
+      body: _isJoining 
+        ? const Center(child: CircularProgressIndicator(strokeWidth: 2, valueColor: AlwaysStoppedAnimation<Color>(Colors.white)))
+        : FutureBuilder<List<Map<String, dynamic>>?>(
         future: _tournamentsFuture,
         builder: (context, snapshot) {
+          // ... (rest of the builder logic remains the same)
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           }
@@ -133,12 +193,7 @@ class _HomePageState extends State<HomePage> {
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
-                onPressed: () {
-                  // TODO: Implement join logic
-                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Join functionality will be added soon!')),
-                  );
-                },
+                onPressed: () => _joinTournament(tournament['id'], tournament['entry_fee']),
                 style: ElevatedButton.styleFrom(backgroundColor: Colors.deepPurpleAccent),
                 child: const Text('Join Now', style: TextStyle(color: Colors.white)),
               ),

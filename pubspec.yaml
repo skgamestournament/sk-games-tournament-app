@@ -1,0 +1,30 @@
+name: sk_games_tournament
+description: "A new Flutter project for SK Games Tournament."
+publish_to: 'none' 
+
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.2.3 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  
+  # Supabase client for Flutter
+  supabase_flutter: ^2.5.0
+
+  # For using beautiful fonts from Google Fonts
+  google_fonts: ^6.2.1
+
+  # For showing icons and images in SVG format
+  flutter_svg: ^2.0.10+1
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.1
+
+flutter:
+  uses-material-design: true
+  

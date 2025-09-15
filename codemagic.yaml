@@ -2,23 +2,19 @@ workflows:
   default-workflow:
     name: Default Workflow
     instance_type: mac_mini_m2
-    max_build_duration: 15
     environment:
       flutter: stable
       java: 11
-      # Adding explicit Android SDK versions for maximum stability
-      ndk: 25.2.9519653
-      android_sdk_platform: 34
     scripts:
       - name: Setup Project and Environment
         script: | 
-          set -e # exit on first error
+          set -e
           flutter create .
           echo "--- Fixing minSdkVersion ---"
           sed -i '' 's/minSdkVersion flutter.minSdkVersion/minSdkVersion 21/g' android/app/build.gradle
       - name: Build Android App with Gradle clean
         script: | 
-          set -e # exit on first error
+          set -e
           cd android && ./gradlew clean && cd ..
           flutter build apk --release
     artifacts:

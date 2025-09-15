@@ -6,16 +6,13 @@ workflows:
       flutter: stable
       java: 11
     scripts:
-      - name: Setup Project and Environment
+      - name: Generate platform files and clean
         script: | 
           set -e
           flutter create .
-          echo "--- Fixing minSdkVersion ---"
-          sed -i '' 's/minSdkVersion flutter.minSdkVersion/minSdkVersion 21/g' android/app/build.gradle
-      - name: Build Android App with Gradle clean
-        script: | 
-          set -e
           cd android && ./gradlew clean && cd ..
+      - name: Build Android App
+        script: | 
           flutter build apk --release
     artifacts:
       - build/app/outputs/flutter-apk/app-release.apk
